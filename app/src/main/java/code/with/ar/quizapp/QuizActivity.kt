@@ -1,0 +1,138 @@
+package code.with.ar.quizapp
+
+import android.app.Activity
+import android.content.Intent
+import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
+import android.widget.Toast
+import code.with.ar.quizapp.databinding.ActivityQuizBinding
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+
+class QuizActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityQuizBinding
+    private lateinit var list: ArrayList<QuestionModel>
+    private var count: Int = 0
+    private var score: Int = 0
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityQuizBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+
+        list= ArrayList()
+        Firebase.firestore.collection("quiz")
+
+
+            .get().addOnSuccessListener {
+                    doct->
+                list.clear()
+                for (i in doct.documents) {
+                var questionModel= i.toObject(QuestionModel::class.java)
+                    list.add(questionModel!!)
+                }
+
+                binding.question.setText(list.get(0).question)
+                binding.option1.setText(list.get(0).option1)
+                binding.option2.setText(list.get(0).option2)
+                binding.option3.setText(list.get(0).option3)
+                binding.option4.setText(list.get(0).option4)
+
+            }
+            .addOnFailureListener { exception ->
+                // Handle failure to retrieve data from Firestore
+                Log.e("Firestore", "Error fetching data: ${exception.message}", exception)
+                Toast.makeText(this@QuizActivity, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+            }
+
+
+//        list = ArrayList<QuestionModel>()
+//        list.add(
+//            QuestionModel(
+//                "1Who is the traffic police of the cell",
+//                "Mitochondria",
+//                "Nucleus",
+//                "Golgi Bodies",
+//                "Endoplasmic Reticulum",
+//                "Golgi Bodies"
+//            )
+//        )
+//        list.add(
+//            QuestionModel(
+//                "2Who is the traffic police of the cell",
+//                "Mitochondria",
+//                "Nucleus",
+//                "Golgi Bodies",
+//                "Endoplasmic Reticulum",
+//                "Golgi Bodies"
+//            )
+//        )
+//        list.add(
+//            QuestionModel(
+//                "3Who is the traffic police of the cell",
+//                "Mitochondria",
+//                "Nucleus",
+//                "Golgi Bodies",
+//                "Endoplasmic Reticulum",
+//                "Golgi Bodies"
+//            )
+//        )
+//        list.add(
+//            QuestionModel(
+//                "4Who is the traffic police of the cell",
+//                "Mitochondria",
+//                "Nucleus",
+//                "Golgi Bodies",
+//                "Endoplasmic Reticulum",
+//                "Golgi Bodies"
+//            )
+//        )
+
+
+
+        binding.option1.setOnClickListener {
+            nextData(binding.option1.text.toString())
+        }
+        binding.option2.setOnClickListener {
+            nextData(binding.option2.text.toString())
+        }
+        binding.option3.setOnClickListener {
+            nextData(binding.option3.text.toString())
+        }
+        binding.option4.setOnClickListener {
+            nextData(binding.option4.text.toString())
+        }
+
+    }
+
+    private fun nextData(i: String) {
+
+
+        if (count < list.size) {
+            if (list.get(count).ans.equals(i)) {
+                score++
+            }
+        }
+
+        count++
+        if (count >= list.size) {
+            val intent=Intent(this, ScoreActivity::class.java)
+            intent.putExtra("SCORE" ,score)
+            startActivity(intent)
+            finish()
+        }
+
+        else {
+            binding.question.setText(list.get(count).question)
+            binding.option1.setText(list.get(count).option1)
+            binding.option2.setText(list.get(count).option2)
+            binding.option3.setText(list.get(count).option3)
+            binding.option4.setText(list.get(count).option4)
+        }
+
+    }
+}
+
+
